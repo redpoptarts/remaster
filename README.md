@@ -5,6 +5,10 @@
 This is a BASH shell script that helps you quickly keep your git branches up to date with upstream.
 You add it to your bash profile so that it's always available to you in your terminal by typing `remaster`.
 
+## Requirements
+
+This script was developed for OSX users. It has been tested on Mojave. Catalina is not yet supported.
+
 ## Dependencies
 
 You may need to install PCRE (Perl compatible regular expressions library) by typing the following into your terminal:
@@ -21,15 +25,7 @@ Clone this repo down to your machine, and run the following command in terminal 
 ./setup.sh
 ```
 
-## Manual Installation
-
-Copy the contents of `src/addToBashProfile.sh` into your own bash profile file. If you have a custom shell setup, you may have a different bash profile filename. The default on OSX is `.bash_profile`.
-
-To open this file in VS Code, you can run this in terminal:
-
-```
-code ~/.bash_profile
-```
+If the quick install does not work for you, try the [manual installation](#Manual-Installation).
 
 ## Usage
 
@@ -76,3 +72,16 @@ If you have set `autoOpenVSCodeOnShortcut` in your config file, VS Code will aut
 ## Logic Diagram
 
 [![Click here to view diagram in Lucid Chart](https://www.lucidchart.com/publicSegments/view/16dff565-a4d5-45d0-a423-acf00c5d50cd/image.png)](https://www.lucidchart.com/documents/view/1563b9bf-d846-4173-9e9b-7b4aefd9afa4)
+
+## Manual Installation
+
+1. Determine which file you want as your bash profile.
+   - The default on OSX (Mojave and prior) is `.bash_profile`.
+   - If you have a custom shell setup, you may have a different bash profile filename.
+2. Make a backup copy of your bash profile
+3. Copy the contents of `src/addToBashProfile.sh` into your own bash profile file.
+4. Copy the file `./src/bash_calebutils_config.sh` to `~/bash_calebutils/.bash_calebutils_config.sh`
+5. Copy the file `./src/bash_calebutils_remaster.sh` to `~/bash_calebutils/.bash_calebutils_remaster.sh`
+6. Edit the config file to suit your needs
+7. Run `source ~/.bash_profile` to load changes to your terminal.
+   - If step step causes any errors, the installation has failed. You should restore your bash profile from the backup.
