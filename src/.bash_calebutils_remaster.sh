@@ -5,15 +5,34 @@ function remaster() {
   OK="✅ OK"
   Error="${Red}❌ ERROR"
 
+	# ---- Check git configuration ----
+  printf "${FullLine}"
+  printf "\n${Green} Remaster - Initializing"
+  printf "${FullLine}\n"
+  # Store Current Branch Name
+  {
+	  originalBranchName=$(git rev-parse --abbrev-ref HEAD) &&
+    originalHeadRef=$(git rev-parse HEAD) &&
+    upstreamRef=$(git rev-parse $upstreamRemoteName/master) &&
+    localMasterRef=$(git rev-parse $localBranchTrackingOriginMaster)
+  } && {
+    printf "\n${Green}Git Configuration ${OK}\n"
+  } || {
+    printf "\n${Error}: Remaster configuration is invalid for this repo."
+    printf "\n${Yellow}You must have:"
+    printf "\n${White} • ${Yellow}A remote called ${Purple}$upstreamRemoteName${Yellow} "
+    printf "\n${White} • ${Yellow}A branch on that remote called ${Purple}master${Yellow} "
+    printf "\n${White} • ${Yellow}A remote called ${Purple}$originRemoteName${Yellow} "
+    printf "\n${White} • ${Yellow}A branch on that remote called ${Purple}$localBranchTrackingOriginMaster${Yellow} "
+    printf "\n\n${Reset}"
+    return
+  }
+
 	# ---- Verify clean working tree ----
   printf "${FullLine}"
   printf "\n${Green} Checking for Clean Work Tree"
   printf "${FullLine}\n"
   
-  # Store Current Branch Name
-	originalBranchName=$(git rev-parse --abbrev-ref HEAD)
-	originalHeadRef=$(git rev-parse HEAD)
-  upstreamRef=$(git rev-parse $upstreamRemoteName/master)
   printf "\n${Green}Current working branch: ${Cyan}$originalBranchName\n\n"
   
   printf "${Grey}"
