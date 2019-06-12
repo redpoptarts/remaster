@@ -9,6 +9,16 @@ You add it to your bash profile so that it's always available to you in your ter
 
 This script was developed for OSX users. It has been tested on Mojave. Catalina is not yet supported.
 
+Full support for **Bash shell**.  
+Not designed for **zshell**, but it has been tested and no problems reported yet.
+
+For `remaster` to work in your repo, you must have:
+
+- An **upstream** remote configured _(name is configurable)_
+- A **master** branch on that remote
+- An **origin** remote _(name is configurable)_
+- A **master** branch on that remote _(name is configurable)_
+
 ## Dependencies
 
 You may need to install PCRE (Perl compatible regular expressions library) by typing the following into your terminal:
