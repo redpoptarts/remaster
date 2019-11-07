@@ -116,16 +116,16 @@ case "$shouldInstall" in
           }
         } && {
           # Installation Success
-          printf "\n\n${Green}Installation success!  You may now use the ✨ ${Purple}remaster${Green} ✨ command in any git repo folder.\n"
+          printf "\n\n${Green}✅ Installation success!  You may now use the ✨ ${Purple}remaster${Green} ✨ command in any git repo folder.\n"
         } || {
           # Installation failure
-          printf "\n${Red}ERROR: Could not complete installation";
-          printf "\n${Yellow}Rolling back to backup ... ${Grey}\n";
+          printf "\n${Red}❌ ERROR: Could not complete installation";
+          printf "\n${Yellow}💾 Rolling back to backup ... ${Grey}\n";
           cp -v "$HOME/${bashProfileFilename}.bak" "$HOME/${bashProfileFilename}"
           {
             printf "${Green}DONE";
-            printf "\n\n${Green}Rollback successful!"
-          } || printf "${Red}ERROR: Could not roll back to backup";
+            printf "\n\n${Green}✅ Rollback successful!"
+          } || printf "${Red}❌ ERROR: Could not roll back to backup";
         }
 
 
@@ -135,7 +135,6 @@ case "$shouldInstall" in
         printf "\n${Red}ERROR: Invalid filename"
         return 1
       fi
-      printf "\n${Green}"
     ;;
   * )
     ;;
