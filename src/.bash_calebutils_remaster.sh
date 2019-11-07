@@ -36,12 +36,12 @@ function remaster() {
   printf "\n${Green}Current working branch: ${Cyan}$originalBranchName\n\n"
   
   printf "${Grey}"
-  git fetch --all
 	if ! $(require_clean_work_tree) ; then
 		return
   else
     printf "\n${Green}No local uncommitted changes ... ${OK} \n"
 	fi
+  git fetch --all
 
 	# ---- origin/master ----
   printf "${FullLine}"
