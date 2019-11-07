@@ -21,11 +21,13 @@ For `remaster` to work in your repo, you must have:
 
 ## Dependencies
 
-You may need to install PCRE (Perl compatible regular expressions library) by typing the following into your terminal:
+If you use VSCode, installation will go more smoothly if you enable the `code` Shell Command.
 
+In VSCode, press Command + Shift + P, and begin typing...
 ```
-brew install pcre
+Shell Command: Install 'code' command in PATH
 ```
+Select this option and press ENTER to install the shortcut.
 
 ## Quick Install
 
@@ -92,6 +94,7 @@ If you have set `autoOpenVSCodeOnShortcut` in your config file, VS Code will aut
 3. Copy the contents of `src/addToBashProfile.sh` into your own bash profile file.
 4. Copy the file `./src/bash_calebutils_config.sh` to `~/bash_calebutils/.bash_calebutils_config.sh`
 5. Copy the file `./src/bash_calebutils_remaster.sh` to `~/bash_calebutils/.bash_calebutils_remaster.sh`
-6. Edit the config file to suit your needs
-7. Run `source ~/.bash_profile` to load changes to your terminal.
+6. Copy the file `./src/bash_calebutils_fork.sh` to `~/bash_calebutils/.bash_calebutils_fork.sh`
+7. Edit the config file to suit your needs
+8. Run `source ~/.bash_profile` to load changes to your terminal.
    - If step step causes any errors, the installation has failed. You should restore your bash profile from the backup.
