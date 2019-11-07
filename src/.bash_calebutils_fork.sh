@@ -47,6 +47,7 @@ function fork() {
         1)
           printf "\n\n${Green}[Command + Double Click] this link to open in a browser:"
           printf "\n${Purple}http://www.github.com/opentable/${repoName}/fork"
+          printf "\n    👆                                           👆\n"
           printf "\n\n\n${Blue}"
           read -p "When you are done forking this repository in Github, press any key to continue."
           readytoClone=1
