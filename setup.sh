@@ -18,6 +18,7 @@ printf "${FullLine}"
 printf "\n${Green} This script will: "
 printf "\n${Yellow} • ${Green}Copy the source files into ~/bash_calebutils"
 printf "\n${Yellow} • ${Green}Add the ${Purple}remaster${Green} script to your bash profile file"
+printf "\n${Yellow} • ${Green}Add the ${Purple}fork${Green} script as well"
 printf "\n\n"
 printf "${Cyan}Would you like to continue? (y/N): ${Grey}"
 
@@ -31,10 +32,15 @@ case "$shouldInstall" in
       printf "${FullLine}\n${Grey}"
 
       mkdir ~/bash_calebutils
+
       # Copy config (ask before overwrite)
       cp -P -n -i src/.bash_calebutils_config.sh ~/bash_calebutils/.bash_calebutils_config.sh && printf "\n${Green}[Config] Copied" || printf "\n${Yellow}[Config] not copied"
+
       # Copy remaster (no prompt)
       cp -P src/.bash_calebutils_remaster.sh ~/bash_calebutils/.bash_calebutils_remaster.sh && printf "\n${Green}[Remaster] Copied" || printf "\n${Red}[Remaster] not copied"
+
+      # Copy fork (no prompt)
+      cp -P src/.bash_calebutils_fork.sh ~/bash_calebutils/.bash_calebutils_fork.sh && printf "\n${Green}[Fork] Copied" || printf "\n${Red}[Fork] not copied"
       printf "\n${Green}DONE"
 
       # Append to bash profile
@@ -103,7 +109,10 @@ case "$shouldInstall" in
             read -p ""
 
             # Validate that config and chosen home directory is correct
-            source $HOME/$bashProfileFilename && cd $myCodeDirectory
+            printf "\n${Green}Reload bash profile..."
+            printf "\n${Green}(${Purple}${HOME}/${bashProfileFilename}${Green})\n${Grey}"
+            source $HOME/$bashProfileFilename
+            printf "${White}Note: If any errors appeared here, there may be a parsing error with your bash profile."
           }
         } && {
           # Installation Success
@@ -124,7 +133,7 @@ case "$shouldInstall" in
         # ls -A | cut -f1
       else
         printf "\n${Red}ERROR: Invalid filename"
-        return
+        return 1
       fi
       printf "\n${Green}"
     ;;
