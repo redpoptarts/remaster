@@ -2,7 +2,8 @@ function remaster() {
 	clear && printf '\e[3J'
   printf "${White}"
   FullLine="\n${White}------------------------------------------------------"
-  OK="✅ OK"
+  OK="${Green}✅ OK"
+  Warning="${Yellow}⚠️  WARNING"
   Error="${Red}❌ ERROR"
 
 	# ---- Check git configuration ----
@@ -68,15 +69,21 @@ function remaster() {
       [yY]) # Save progress to a feature branch
         printf "\n${Cyan}New feature branch name: ${Grey}"
         read choiceBranchName
-        if check_valid_branch $choiceBranchName ; then
-          printf "\n${Green}$choiceBranchName is a valid branch name ... ${OK}\n${Grey}"
-			    # Save commits from origin/master into a feature branch
-          git branch $choiceBranchName
-          # Reset origin/master <== upstream/master
-          git fetch $upstreamRemoteName +master:$localBranchTrackingOriginMaster --update-head-ok
-          git push $originRemoteName $localBranchTrackingOriginMaster:master --force
+        if check_valid_branch $choiceBranchName "MustNotExist"; then
+          {
+            # Save commits from origin/master into a feature branch
+            # Reset origin/master <== upstream/master (force)
+            git checkout -b $choiceBranchName && \
+            git fetch $upstreamRemoteName +master:$localBranchTrackingOriginMaster && \
+            git push $originRemoteName +$localBranchTrackingOriginMaster:master
+          } && {
+            printf "\n${OK}: Forced reset of ${Cyan}${localBranchTrackingOriginMaster}${Green}, locally and on remote ${Cyan}$originRemoteName \n${Grey}"
+            printf "\n${OK}: Saved progress into new feature branch (${Purple} ${choiceBranchName} ${Green})\n"
+          } || {
+            printf "\n${Error}: Error saving progress into new branch \n"
+          }
         else
-          printf "\n${Error}: ${Cyan}$choiceBranchName ${Red}is not a valid branch name.\n"
+          printf "\n${Error}: Invalid branch name.\n"
           printf "\n${Red}Feature Branch creation cancelled.  ${Cyan}$originRemoteName/$localBranchTrackingOriginMaster ${Yellow}will remain untouched.\n"
         fi
 				;;
@@ -86,8 +93,29 @@ function remaster() {
 			esac
 	fi
 
-  if [ "$originalBranchName" != "$localBranchTrackingOriginMaster" ]; then
-    # ---- Feature Branch ----
+  # ---- Feature Branch ----
+  if [ "$originalBranchName" == "HEAD" ]; then
+    printf "${FullLine}"
+    printf "\n${Green} Synchronize feature branch"
+    printf "${FullLine}"
+    if [ "$originalBranchName" = "HEAD" ]; then
+      printf "\n\n${Warning} You are in a detached head state! (You do not have any branch checked out)\n"
+      printf "\n${Green}Here's a list of all branch names and tags that also point to your current commit:\n${Purple}"
+      git log -n1 --format=%D
+      printf "\n${Cyan}Recommend solution: Create a branch at this location? (Y/n) ${Grey}"
+			read -s -n1 key
+			case "$key" in
+				[yY])
+					create_custom_branch "Any"
+					;;
+				*)
+					;;
+			esac
+  elif [ "$originalBranchName" == "$localBranchTrackingOriginMaster" ]; then
+      printf "\n${Yellow}You do not currently have a feature branch checked out."
+      printf "\n${Yellow}Current branch: ${Purple}$originalBranchName\n\n${Green}"
+    fi
+  elif [ "$originalBranchName" != "$localBranchTrackingOriginMaster" ]; then
     printf "${FullLine}"
     printf "\n${Green} Synchronize ${Cyan}$originalBranchName ${Green}with ${Cyan}$upstreamRemoteName/master"
     printf "${FullLine}"
@@ -157,7 +185,7 @@ function remaster() {
         2) # Create a new feature branch at upstream/master
           printf "\n${Cyan}New feature branch name: ${Grey}"
           read choiceBranchName
-          if check_valid_branch $choiceBranchName ; then
+          if check_valid_branch $choiceBranchName "MustNotExist"; then
             printf "\n${Green}$choiceBranchName is a valid branch name ... ${OK}\n"
             # Create branch @ upstream/master
             git checkout -b $choiceBranchName $upstreamRemoteName/master --no-track
@@ -266,6 +294,57 @@ require_clean_work_tree () {
 	fi
 }
 
+create_custom_branch() {
+  ruleAllowExisting=${1}
+
+  printf "\n${Cyan}New feature branch name: ${Grey}"
+  read choiceBranchName
+  if check_valid_branch $choiceBranchName $ruleAllowExisting; then
+    git checkout -B $choiceBranchName
+		printf "\n${OK}: Feature branch created and switched successfully.\n"
+  else
+    printf "\n${Error}: Error creating feature branch at current location.\n"
+  fi
+}
+
 check_valid_branch() {
-  git check-ref-format --normalize "refs/heads/$1"
+  testBranchName=${1}
+  ruleAllowExisting=${2} # Options: "MustExist", "MustNotExist", "Any"
+
+  printf "\n${Green}Checking branch name (${Purple} ${testBranchName} ${Green})... ${Grey}"
+  {
+    # Check that name could be a valid branch name
+    git check-ref-format --normalize "refs/heads/$testBranchName"
+  } && {
+		git show-ref --verify --quiet refs/heads/$testBranchName
+		# Return code of 0 means branch exists
+		branchExists=$?
+
+    case "$ruleAllowExisting" in
+      "MustExist")
+        if [ "$branchExists" == "0" ]; then
+          printf "\n${OK}: Branch exists.\n"
+					return 0
+				else
+          printf "\n${Error}: Branch does not exist.\n"
+					return 1
+				fi
+        ;;
+      "MustNotExist")
+        if [ "$branchExists" != "0" ]; then
+          printf "\n${OK}: Branch does not yet exist.\n"
+					return 0
+				else
+          printf "\n${Error}: Branch already exists.\n"
+				fi
+				;;
+      * )
+        printf "\n${OK}: Branch name is valid.\n"
+        return 0
+        ;;
+    esac
+  } || {
+    printf "\n${Error}: Invalid branch name.\n"
+    return 1
+  }
 }
