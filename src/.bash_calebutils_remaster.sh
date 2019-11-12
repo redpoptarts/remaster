@@ -94,33 +94,48 @@ function remaster() {
 	fi
 
   # ---- Feature Branch ----
-  if [ "$originalBranchName" == "HEAD" ]; then
+  if [ "$originalBranchName" == "$localBranchTrackingOriginMaster" ]; then
     printf "${FullLine}"
     printf "\n${Green} Synchronize feature branch"
     printf "${FullLine}"
-    if [ "$originalBranchName" = "HEAD" ]; then
-      printf "\n\n${Warning} You are in a detached head state! (You do not have any branch checked out)\n"
-      printf "\n${Green}Here's a list of all branch names and tags that also point to your current commit:\n${Purple}"
-      git log -n1 --format=%D
-      printf "\n${Cyan}Recommend solution: Create a branch at this location? (Y/n) ${Grey}"
-			read -s -n1 key
-			case "$key" in
-				[yY])
-					create_custom_branch "Any"
-					;;
-				*)
-					;;
-			esac
-  elif [ "$originalBranchName" == "$localBranchTrackingOriginMaster" ]; then
-      printf "\n${Yellow}You do not currently have a feature branch checked out."
-      printf "\n${Yellow}Current branch: ${Purple}$originalBranchName\n\n${Green}"
-    fi
-  elif [ "$originalBranchName" != "$localBranchTrackingOriginMaster" ]; then
+
+    printf "\n${Yellow}You do not currently have a feature branch checked out."
+    printf "\n${Yellow}Current branch: ${Purple}$originalBranchName\n\n${Green}"
+  fi
+
+  if [ "$originalBranchName" == "HEAD" ]; then
+    printf "${FullLine}"
+    printf "\n${Green} Synchronize ${Cyan}${originalBranchName}${Green} with ${Cyan}$upstreamRemoteName/master"
+    printf "${FullLine}"
+
+    git checkout $originalHeadRef --quiet
+
+    printf "\n\n${Warning} You are in a detached head state! (You do not have any branch checked out)\n"
+    printf "\n${Green}Here's a list of all branch names and tags that also point to your current commit:"
+    printf "\n${Purple}"
+
+    git log -n1 --format=%D `# Output all branch names for the current commit` \
+      | tr -d " " | cut -d"," -f 2- `# Exclude 'HEAD' from output` \
+      | tr , "\n" `# Output on separate lines`
+
+    printf "\n${Cyan}Recommend solution: Checkout/Create a branch at this location? (y/N) ${Grey}"
+    read -s -n1 key
+    case "$key" in
+      [yY])
+        create_custom_branch "Any"
+        originalBranchName=$choiceBranchName
+        ;;
+      *)
+        printf "\n${Yellow}Feature Branch will not be created.  ${Cyan}$originalBranchName ${Yellow}will remain checked out.\n"
+        ;;
+    esac
+  fi
+  
+  if [ "$originalBranchName" != "HEAD" ] && [ "$originalBranchName" != "$localBranchTrackingOriginMaster" ]; then
     printf "${FullLine}"
     printf "\n${Green} Synchronize ${Cyan}$originalBranchName ${Green}with ${Cyan}$upstreamRemoteName/master"
     printf "${FullLine}"
     printf "\n${Grey}"
-
     # Restore HEAD from reference
     git checkout $originalBranchName || git checkout $originalHeadRef
 
@@ -128,6 +143,7 @@ function remaster() {
     commitsBehind=$(git rev-list --right-only --count $originalBranchName..$upstreamRemoteName/master)
     isAncestorOfUpstream=$(git merge-base --is-ancestor $upstreamRemoteName/master $originalBranchName)
 
+    # Check for existing pull request
     declare -a allRemoteRefs=$(git ls-remote --refs upstream 'pull/*/head' | cut -f1)
     unset foundPullRequest
     for ref in ${allRemoteRefs}; do
