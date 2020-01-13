@@ -38,12 +38,17 @@ function fork() {
   case "$shouldForkAndClone" in
     [yY][eE][sS]|[yY])
       printf "\n\n${Green}Choose a forking method:"
+      printf "\n${White}(${Yellow} 0 ${White}) Skip forking, clone only (repo is already forked)"
       printf "\n${White}(${Yellow} 1 ${White}) Open a browser and Fork"
       printf "\n${White}(${Yellow} 2 ${White}) Login to Github in Terminal to Fork ${Cyan}\n\n"
       read -p "Forking method (1/2): " forkingMethod
       readytoClone=0
 
       case "$forkingMethod" in
+        0)
+          printf "\n\n${Green}Skipping repo forking."
+          readytoClone=1
+          ;;
         1)
           printf "\n\n${Green}[Command + Double Click] this link to open in a browser:"
           printf "\n${Purple}http://www.github.com/opentable/${repoName}/fork"
