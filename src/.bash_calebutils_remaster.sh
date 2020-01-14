@@ -69,11 +69,11 @@ function remaster() {
       [yY]) # Save progress to a feature branch
         printf "\n${Cyan}New feature branch name: ${Grey}"
         read choiceBranchName
-        if check_valid_branch $choiceBranchName "MustNotExist"; then
+        if check_valid_branch $choiceBranchName "ConfirmOverwrite"; then
           {
             # Save commits from origin/master into a feature branch
             # Reset origin/master <== upstream/master (force)
-            git checkout -b $choiceBranchName && \
+            git checkout -B $choiceBranchName && \
             git fetch $upstreamRemoteName +master:$localBranchTrackingOriginMaster && \
             git push $originRemoteName +$localBranchTrackingOriginMaster:master
           } && {
@@ -201,10 +201,10 @@ function remaster() {
         2) # Create a new feature branch at upstream/master
           printf "\n${Cyan}New feature branch name: ${Grey}"
           read choiceBranchName
-          if check_valid_branch $choiceBranchName "MustNotExist"; then
+          if check_valid_branch $choiceBranchName "ConfirmOverwrite"; then
             printf "\n${Green}$choiceBranchName is a valid branch name ... ${OK}\n"
             # Create branch @ upstream/master
-            git checkout -b $choiceBranchName $upstreamRemoteName/master --no-track
+            git checkout -B $choiceBranchName $upstreamRemoteName/master --no-track
             printf "\n\n${Green}You are in sync with ${Cyan}$upstreamRemoteName/master${Green} and are ready to begin working on your new feature, on branch ${Cyan}$choiceBranchName\n"
           else
             printf "\n${Error}: ${Cyan}$choiceBranchName ${Red}is not a valid branch name.\n"
@@ -325,7 +325,7 @@ create_custom_branch() {
 
 check_valid_branch() {
   testBranchName=${1}
-  ruleAllowExisting=${2} # Options: "MustExist", "MustNotExist", "Any"
+  ruleAllowExisting=${2} # Options: "MustExist", "MustNotExist", "ConfirmOverwrite", "Any"
 
   printf "\n${Green}Checking branch name (${Purple} ${testBranchName} ${Green})... ${Grey}"
   {
@@ -352,6 +352,25 @@ check_valid_branch() {
 					return 0
 				else
           printf "\n${Error}: Branch already exists.\n"
+          return 1
+				fi
+				;;
+      "ConfirmOverwrite")
+        if [ "$branchExists" == "0" ]; then
+          printf "\n${Warning}: Branch with name ${Purple}${testBranchName}${Yellow} already exists.\n"
+          printf "Confirm overwrite? (Y/n)"
+          read -s -n1 key
+          printf "\n"
+          case "$key" in
+            [yY]) # Overwrite
+              printf "\n${Yellow}Branch will be overwritten. ${Grey}"
+              return 0
+              ;;
+            *)
+              return 1
+          esac
+				else
+          printf "\n${OK}: Branch does not exist.\n"
 				fi
 				;;
       * )
