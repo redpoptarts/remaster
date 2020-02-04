@@ -1,18 +1,18 @@
 function remaster() {
-	clear && printf '\e[3J'
+  clear && printf '\e[3J'
   printf "${White}"
   FullLine="\n${White}------------------------------------------------------"
   OK="${Green}✅ OK"
   Warning="${Yellow}⚠️  WARNING"
   Error="${Red}❌ ERROR"
 
-	# ---- Check git configuration ----
+  # ---- Check git configuration ----
   printf "${FullLine}"
   printf "\n${Green} Remaster - Initializing"
   printf "${FullLine}\n"
   # Store Current Branch Name
   {
-	  originalBranchName=$(git rev-parse --abbrev-ref HEAD) &&
+    originalBranchName=$(git rev-parse --abbrev-ref HEAD) &&
     originalHeadRef=$(git rev-parse HEAD) &&
     upstreamRef=$(git rev-parse $upstreamRemoteName/master) &&
     localMasterRef=$(git rev-parse $localBranchTrackingOriginMaster)
@@ -29,7 +29,7 @@ function remaster() {
     return
   }
 
-	# ---- Verify clean working tree ----
+  # ---- Verify clean working tree ----
   printf "${FullLine}"
   printf "\n${Green} Checking for Clean Work Tree"
   printf "${FullLine}\n"
@@ -37,35 +37,35 @@ function remaster() {
   printf "\n${Green}Current working branch: ${Cyan}$originalBranchName\n\n"
   
   printf "${Grey}"
-	if ! $(require_clean_work_tree) ; then
-		return
+  if ! $(require_clean_work_tree) ; then
+    return
   else
     printf "\n${Green}No local uncommitted changes ... ${OK} \n"
-	fi
+  fi
   git fetch --all
 
-	# ---- origin/master ----
+  # ---- origin/master ----
   printf "${FullLine}"
   printf "\n${Green} Synchronize ${Cyan}$originRemoteName/$localBranchTrackingOriginMaster ${Green}with ${Cyan}$upstreamRemoteName/master"
   printf "${FullLine}"
   printf "\n${Grey}"
 
-	# Checkout origin/master
-	git checkout $localBranchTrackingOriginMaster
+  # Checkout origin/master
+  git checkout $localBranchTrackingOriginMaster
 
-	# Synchronize (ff/rebase) origin/master <-- upstream/master
+  # Synchronize (ff/rebase) origin/master <-- upstream/master
   ff_or_rebase $upstreamRemoteName/master $localBranchTrackingOriginMaster
 
-	# Check: Is origin ahead of upstream?
-	if [ $(git rev-list --count $upstreamRemoteName/master..$localBranchTrackingOriginMaster) -ge 1 ]; then
-		# Suggest saving work into feature branch @ origin/master
+  # Check: Is origin ahead of upstream?
+  if [ $(git rev-list --count $upstreamRemoteName/master..$localBranchTrackingOriginMaster) -ge 1 ]; then
+    # Suggest saving work into feature branch @ origin/master
     printf "\n${Yellow}WARNING: origin/master is AHEAD of upstream/master!\n"
-		printf "\n${Yellow}Problem: You are developing on your master branch, which is not recommended."
+    printf "\n${Yellow}Problem: You are developing on your master branch, which is not recommended."
     printf "\n\n${Green}Summary of commits:\n"
-	  git log $upstreamRemoteName/master..$localBranchTrackingOriginMaster --graph --oneline
-		printf "\n${Cyan}Recommended Solution: Would you like to save this work into a feature branch? (y/n) ${Grey}"
-		read -s -n1 key
-		case "$key" in
+    git log $upstreamRemoteName/master..$localBranchTrackingOriginMaster --graph --oneline
+    printf "\n${Cyan}Recommended Solution: Would you like to save this work into a feature branch? (y/n) ${Grey}"
+    read -s -n1 key
+    case "$key" in
       [yY]) # Save progress to a feature branch
         printf "\n${Cyan}New feature branch name: ${Grey}"
         read choiceBranchName
@@ -86,12 +86,12 @@ function remaster() {
           printf "\n${Error}: Invalid branch name.\n"
           printf "\n${Red}Feature Branch creation cancelled.  ${Cyan}$originRemoteName/$localBranchTrackingOriginMaster ${Yellow}will remain untouched.\n"
         fi
-				;;
-			* ) # Do nothing
+        ;;
+      * ) # Do nothing
           printf "\n${Yellow}Feature Branch creation cancelled.  ${Cyan}$originRemoteName/$localBranchTrackingOriginMaster ${Yellow}will remain untouched.\n"
-				;;
-			esac
-	fi
+        ;;
+      esac
+  fi
 
   # ---- Feature Branch ----
   if [ "$originalBranchName" == "$localBranchTrackingOriginMaster" ]; then
@@ -218,14 +218,14 @@ function remaster() {
     fi
   fi
 
-	# ---- Auto Yarn / NPM Install ----
+  # ---- Auto Yarn / NPM Install ----
   printf "${FullLine}"
   printf "\n${Green} Auto Update Dependencies"
   printf "${FullLine}"
   printf "\n${Grey}"
-	# Check if there are any incoming changes to package.json
-	git diff $originalHeadRef..HEAD --quiet --exit-code -- 'package.json'
-	numPackageChanges=$?
+  # Check if there are any incoming changes to package.json
+  git diff $originalHeadRef..HEAD --quiet --exit-code -- 'package.json'
+  numPackageChanges=$?
   if [ $numPackageChanges -ne 0 ]; then
     if [ -f "yarn.lock" ]; then
       installCommand="yarn"
@@ -240,23 +240,23 @@ function remaster() {
     printf "\n${Green}No changes detected in ${Purple}package.json${Green} ... ${OK}\n\n"
   fi
 
-	# ---- Final Status ----
+  # ---- Final Status ----
   printf "${FullLine}"
   printf "\n${Green} Final Branch Status"
   printf "${FullLine}"
   printf "\n${Grey}"
-	
+  
   finalBranchName=$(git rev-parse --abbrev-ref HEAD)
   commitsAhead=$(git rev-list --right-only --count $upstreamRemoteName/master..HEAD)
   commitsBehind=$(git rev-list --right-only --count HEAD..$upstreamRemoteName/master)
 
   printf "${Green}Current working branch: ${Cyan}$finalBranchName\n\n"
-	git log -5 --graph --oneline
+  git log -5 --graph --oneline
   printf "\n\n${Reset}"
 
   if [ "$autoOpenVSCodeOnShortcut" = "true" ]; then
-		code .
-	fi
+    code .
+  fi
 }
 
 ff_or_rebase() {
@@ -298,16 +298,16 @@ ff_or_rebase() {
 }
 
 require_clean_work_tree () {
-	# Update the index
-	git update-index -q --ignore-submodules --refresh
+  # Update the index
+  git update-index -q --ignore-submodules --refresh
 
-	# Disallow unstaged changes in the working tree
+  # Disallow unstaged changes in the working tree
   if [[ -n "$(git status --porcelain)" ]] || ! $(git diff-index --quiet --exit-code HEAD --) ; then
-		echo -en >&2 "\n${Error}: Your local filesystem contains uncommitted changes.\n${Cyan}"
-		git status -- >&2
-		echo -en >&2 "\n${Yellow}Please commit or stash them, and try again.\n\n${Reset}"
-		exit 1
-	fi
+    echo -en >&2 "\n${Error}: Your local filesystem contains uncommitted changes.\n${Cyan}"
+    git status -- >&2
+    echo -en >&2 "\n${Yellow}Please commit or stash them, and try again.\n\n${Reset}"
+    exit 1
+  fi
 }
 
 create_custom_branch() {
@@ -317,7 +317,7 @@ create_custom_branch() {
   read choiceBranchName
   if check_valid_branch $choiceBranchName $ruleAllowExisting; then
     git checkout -B $choiceBranchName
-		printf "\n${OK}: Feature branch created and switched successfully.\n"
+    printf "\n${OK}: Feature branch created and switched successfully.\n"
   else
     printf "\n${Error}: Error creating feature branch at current location.\n"
   fi
@@ -332,29 +332,29 @@ check_valid_branch() {
     # Check that name could be a valid branch name
     git check-ref-format --normalize "refs/heads/$testBranchName"
   } && {
-		git show-ref --verify --quiet refs/heads/$testBranchName
-		# Return code of 0 means branch exists
-		branchExists=$?
+    git show-ref --verify --quiet refs/heads/$testBranchName
+    # Return code of 0 means branch exists
+    branchExists=$?
 
     case "$ruleAllowExisting" in
       "MustExist")
         if [ "$branchExists" == "0" ]; then
           printf "\n${OK}: Branch exists.\n"
-					return 0
-				else
+          return 0
+        else
           printf "\n${Error}: Branch does not exist.\n"
-					return 1
-				fi
+          return 1
+        fi
         ;;
       "MustNotExist")
         if [ "$branchExists" != "0" ]; then
           printf "\n${OK}: Branch does not yet exist.\n"
-					return 0
-				else
+          return 0
+        else
           printf "\n${Error}: Branch already exists.\n"
           return 1
-				fi
-				;;
+        fi
+        ;;
       "ConfirmOverwrite")
         if [ "$branchExists" == "0" ]; then
           printf "\n${Warning}: Branch with name ${Purple}${testBranchName}${Yellow} already exists.\n"
@@ -369,10 +369,10 @@ check_valid_branch() {
             *)
               return 1
           esac
-				else
+        else
           printf "\n${OK}: Branch does not exist.\n"
-				fi
-				;;
+        fi
+        ;;
       * )
         printf "\n${OK}: Branch name is valid.\n"
         return 0
