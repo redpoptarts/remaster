@@ -202,9 +202,11 @@ function remaster() {
           printf "\n${Cyan}New feature branch name: ${Grey}"
           read choiceBranchName
           if check_valid_branch $choiceBranchName "ConfirmOverwrite"; then
-            printf "\n${Green}$choiceBranchName is a valid branch name ... ${OK}\n"
+            printf "\n${Grey}'$choiceBranchName' is a valid branch name\n${Grey}"
             # Create branch @ upstream/master
             git checkout -B $choiceBranchName $upstreamRemoteName/master --no-track
+            printf "\n${OK}: Feature branch created and switched successfully.\n"
+            push_and_set_upstream_if_config_enabled
             printf "\n\n${Green}You are in sync with ${Cyan}$upstreamRemoteName/master${Green} and are ready to begin working on your new feature, on branch ${Cyan}$choiceBranchName\n"
           else
             printf "\n${Error}: ${Cyan}$choiceBranchName ${Red}is not a valid branch name.\n"
@@ -254,7 +256,7 @@ function remaster() {
   git log -5 --graph --oneline
   printf "\n\n${Reset}"
 
-  if [ "$autoOpenVSCodeOnShortcut" = "true" ]; then
+  if [ "$autoOpenVSCodeOnShortcut" == "true" ]; then
     code .
   fi
 }
@@ -316,10 +318,23 @@ create_custom_branch() {
   printf "\n${Cyan}New feature branch name: ${Grey}"
   read choiceBranchName
   if check_valid_branch $choiceBranchName $ruleAllowExisting; then
+    printf "${Grey}"
     git checkout -B $choiceBranchName
     printf "\n${OK}: Feature branch created and switched successfully.\n"
+    push_and_set_upstream_if_config_enabled
   else
     printf "\n${Error}: Error creating feature branch at current location.\n"
+  fi
+}
+
+push_and_set_upstream_if_config_enabled() {
+  if [ "$autoPushNewFeatureBranch" == "true" ]; then
+    printf "\n${Green}Setting up branch tracking...\n${Grey}"
+    git push --set-upstream $originRemoteName $choiceBranchName && {
+      printf "\n${OK}: Branch tracking setup successfully.\n"
+    } || {
+      printf "\n${Error}: Could not push branch to remote.\n"
+    }
   fi
 }
 
@@ -330,6 +345,7 @@ check_valid_branch() {
   printf "\n${Green}Checking branch name (${Purple} ${testBranchName} ${Green})... ${Grey}"
   {
     # Check that name could be a valid branch name
+    printf "${Grey}"
     git check-ref-format --normalize "refs/heads/$testBranchName"
   } && {
     git show-ref --verify --quiet refs/heads/$testBranchName
@@ -363,7 +379,7 @@ check_valid_branch() {
           printf "\n"
           case "$key" in
             [yY]) # Overwrite
-              printf "\n${Yellow}Branch will be overwritten. ${Grey}"
+              printf "\n${Yellow}Overwriting branch... ${Grey}"
               return 0
               ;;
             *)

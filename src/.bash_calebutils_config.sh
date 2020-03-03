@@ -10,6 +10,7 @@ originRemoteName="origin" # Default: 'origin'
 upstreamRemoteName="upstream" # Default: 'upstream'
 localBranchTrackingOriginMaster="master" # Default: 'master'
 
+autoPushNewFeatureBranch="true"
 autoOpenVSCodeOnShortcut="true"
 
 # ==================================
