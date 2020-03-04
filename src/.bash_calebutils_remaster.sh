@@ -166,20 +166,22 @@ function remaster() {
         printf "\n"
         git log $originalBranchName..$upstreamRemoteName/master --graph --oneline
       fi
-
-      if [ "$commitsAhead" -gt 0 ]; then
-        printf "\n${Red}NOTE: You have progress on ${Cyan}$originalBranchName ${Red}which has not been merged into ${Cyan}upstream/master${Reset}\n"
-      fi
       
+      printf "\n"
       if [ -n "$foundPullRequest" ]; then
-        printf "\n${Red}NOTE: A pull request was found for this branch."
+        printf "\n${Green}Pull Request Status: ${Green}FOUND"
         if [ "$commitsAhead" -eq 0 ]; then
-          printf "\n${Yellow}Merge Status: ${Purple}MERGED${Reset}"
+          printf "\n${Green}Merge Status: ${Green}MERGED${Reset}"
           printf "\n\n${Green}Suggest creating a new branch ${White}(${Yellow} Option 2 ${White})${Reset}\n"
         else
-          printf "\n${Yellow}Merge Status: ${Purple}UNMERGED / UNKNOWN${Reset}"
+          printf "\n${Green}Merge Status: ${Red}UNMERGED / UNKNOWN${Reset}"
           printf "\n\n${Yellow}If this repo ${Cyan}merges${Yellow} PRs, then this PR has not been merged"
           printf "\n${Yellow}If this repo ${Cyan}squashes${Yellow} PRs, then the merge status cannot be determined.\n"
+        fi
+      else
+        if [ "$commitsAhead" -gt 0 ]; then
+          printf "\n${Green}Pull Request Status: ${Red}NOT FOUND"
+          printf "\n${Yellow}NOTE: You have progress on ${Cyan}$originalBranchName ${Yellow}which has not been merged into ${Cyan}upstream/master${Reset}\n"
         fi
       fi
 
