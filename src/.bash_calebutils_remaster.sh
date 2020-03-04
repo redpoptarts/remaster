@@ -67,25 +67,22 @@ function remaster() {
     read -s -n1 key
     case "$key" in
       [yY]) # Save progress to a feature branch
-        printf "\n${Cyan}New feature branch name: ${Grey}"
-        read choiceBranchName
-        if check_valid_branch $choiceBranchName "ConfirmOverwrite"; then
-          {
-            # Save commits from origin/master into a feature branch
-            # Reset origin/master <== upstream/master (force)
-            git checkout -B $choiceBranchName && \
-            git fetch $upstreamRemoteName +master:$localBranchTrackingOriginMaster && \
-            git push $originRemoteName +$localBranchTrackingOriginMaster:master
-          } && {
-            printf "\n${OK}: Forced reset of ${Cyan}${localBranchTrackingOriginMaster}${Green}, locally and on remote ${Cyan}$originRemoteName \n${Grey}"
-            printf "\n${OK}: Saved progress into new feature branch (${Purple} ${choiceBranchName} ${Green})\n"
-          } || {
-            printf "\n${Error}: Error saving progress into new branch \n"
-          }
-        else
-          printf "\n${Error}: Invalid branch name.\n"
-          printf "\n${Red}Feature Branch creation cancelled.  ${Cyan}$originRemoteName/$localBranchTrackingOriginMaster ${Yellow}will remain untouched.\n"
-        fi
+        create_custom_branch "ConfirmOverwrite" # Stores selected branch name in variable $choiceBranchName
+        {
+          # Save commits from origin/master into a feature branch
+          # Reset origin/master <== upstream/master (force)
+          printf "\n${Green}Resetting ${Cyan}${localBranchTrackingOriginMaster}${Green} to equal ${Cyan}$upstreamRemoteName/master${Green}...\n${Grey}"
+          git fetch $upstreamRemoteName +master:$localBranchTrackingOriginMaster && \
+          git push $originRemoteName +$localBranchTrackingOriginMaster:master
+        } && {
+          printf "\n${OK}: Forced reset of ${Cyan}${localBranchTrackingOriginMaster}${Green}, locally and on remote ${Cyan}$originRemoteName \n${Grey}"
+          printf "\n${OK}: Saved progress into new feature branch (${Purple} ${choiceBranchName} ${Green})\n"
+          originalBranchName=$choiceBranchName
+        } || {
+          printf "\n${Error}: Error saving progress into new branch \n"
+          printf "\n${Red}Feature Branch creation cancelled.  ${Cyan}$originRemoteName/$localBranchTrackingOriginMaster ${Yellow}will remain untouched.\n${Grey}"
+          git checkout $originalBranchName
+        }
         ;;
       * ) # Do nothing
           printf "\n${Yellow}Feature Branch creation cancelled.  ${Cyan}$originRemoteName/$localBranchTrackingOriginMaster ${Yellow}will remain untouched.\n"
