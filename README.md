@@ -7,7 +7,7 @@ You add it to your bash profile so that it's always available to you in your ter
 
 ## Requirements
 
-This script was developed for OSX users. It has been tested on Mojave. Catalina is not yet supported.
+This script was developed for OSX users. It has been tested on Mojave and Catalina.
 
 Full support for **Bash shell**.  
 Not designed for **zshell**, but it has been tested and no problems reported yet.
@@ -36,6 +36,23 @@ Clone this repo down to your machine, and run the following command in terminal 
 ```
 ./setup.sh
 ```
+
+This script will install the necessary files.
+
+If you have the VSCode `code` command installed, it will automatically open the config file.
+If not, you'll have to manually open the file at this point.
+
+![Config file example](https://i.imgur.com/D1ZqTMc.png)
+
+### Config Values
+- `myCodeDirectory` : Specify a single folder where most of your GIT repo folders live. Note: This string cannot contain '~'. You should instead use `$HOME`.
+- `githubUsername` : Your GitHub Username
+- `orgGithub` : Such as `"opentable"`
+- `originRemoteName` : Frequently your first name, or `origin`
+- `upstreamRemoteName` : Commonly 'upstream'
+- `localBranchTrackingOriginMaster` : Commonly 'main', 'master', or 'base'
+- `autoPushNewFeatureBranch` : Use "true" or "false". When "true", new branches that are created will automatically push to your remote and configure tracking branches
+- `autoOpenVSCodeOnShortcut` : Use "true" or "false". When "true", the script will open the repo in VSCode after the script completes.
 
 If the quick install does not work for you, try the [manual installation](#Manual-Installation).
 
@@ -98,3 +115,18 @@ If you have set `autoOpenVSCodeOnShortcut` in your config file, VS Code will aut
 7. Edit the config file to suit your needs
 8. Run `source ~/.bash_profile` to load changes to your terminal.
    - If step step causes any errors, the installation has failed. You should restore your bash profile from the backup.
+
+### Fork / Clone Script
+
+After setup, the `fork` script will also be available to you.
+
+The script will:
+1) Fork the desired repo if necessary (can be skipped)
+2) Clone the repo to your local repos folder (which you configured during setup)
+3) Set up your `origin` and `upstream` remotes, and configure your branches
+4) `cd` your terminal to the directory so you can get to work immediately
+
+If you would like to fork/clone `orgname/reponame` to `yourgithubusername/reponame`, then use the following command in terminal:
+```
+fork reponame
+```
