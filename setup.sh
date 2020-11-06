@@ -58,13 +58,14 @@ case "$shouldInstall" in
           printf "\n${Yellow}((${Blue} Custom Bash Profile Filename selection ${Yellow}))${Green}"
           printf "\n${Green}Here are some filenames that might be what you're looking for..."
           printf "\n${White}"
+          find ~ -maxdepth 1 -name "*zshrc*" -exec basename {} \;
           find ~ -maxdepth 1 -name "*profile*" -exec basename {} \;
           find ~ -maxdepth 1 -name "*bashrc*" -exec basename {} \;
           printf "\n\n${Cyan}Please enter the filename of the bash profile you want to append: ${Grey}"
           read -p "" bashProfileFilename
           ;;
         *)
-          bashProfileFilename=".bash_profile"
+          bashProfileFilename=".zshrc"
           ;;
       esac
 
