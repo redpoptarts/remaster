@@ -34,7 +34,8 @@ case "$shouldInstall" in
       mkdir ~/bash_calebutils
 
       # Copy config (ask before overwrite)
-      cp -P -n -i src/.bash_calebutils_config.sh ~/bash_calebutils/.bash_calebutils_config.sh && printf "\n${Green}[Config] Copied" || printf "\n${Yellow}[Config] not copied"
+      cp -P -n -i src/.bash_calebutils_config.sh ~/bash_calebutils/.bash_calebutils_config.sh && configWasCopied=true || configWasCopied=false
+      $configWasCopied && printf "\n${Green}[Config] Copied" || printf "\n${Yellow}[Config] not copied"
 
       # Copy remaster (no prompt)
       cp -P src/.bash_calebutils_remaster.sh ~/bash_calebutils/.bash_calebutils_remaster.sh && printf "\n${Green}[Remaster] Copied" || printf "\n${Red}[Remaster] not copied"
@@ -48,8 +49,9 @@ case "$shouldInstall" in
       printf "\n${Green} Add Script to Bash Profile"
       printf "${FullLine}"
 
-      printf "\n${Green}The default OSX bash profile filename is ${Purple}.bash_profile"
-      printf "\n\n${Cyan}Would you like to use the default file? (Y/n): ${Grey}"
+      printf "\n${Green}The default OSX (Catalina) bash profile filename is ${Purple}.zshrc"
+      printf "\n${Green}The legacy OSX (Pre-Catalina) bash profile filename was ${Purple}.bash_profile"
+      printf "\n\n${Cyan}Would you like to use the default file, ${Purple}.zshrc${Cyan}? (Y/n): ${Grey}"
       read -s -n1 shouldUseDefault
       printf "\n"
 
@@ -95,19 +97,21 @@ case "$shouldInstall" in
             fi
             printf "${Green}DONE"
           } && {
-            # Guide user through config editing process
-            printf "\n${FullLine}"
-            printf "\n${Green}Edit Config File"
-            printf "${FullLine}\n${Grey}"
+            if ${configWasCopied} ; then
+              # Guide user through config editing process
+              printf "\n${FullLine}"
+              printf "\n${Green}Edit Config File"
+              printf "${FullLine}\n${Grey}"
 
-            printf "\n${Green}You will need to customize the config file to suit your own needs."
-            printf "\n\n${Yellow}Press enter to automatically open ${Purple}~/bash_calebutils/.bash_calebutils_config.sh${Yellow}...${Grey}"
-            read -p ""
-            code ~/bash_calebutils/.bash_calebutils_config.sh && printf "\n${Green}VSCode Editor opened" || printf "\n${Red}VSCode terminal shortcut not installed. Please edit the file manually at this time."
-          
-            printf "\n${Yellow}Note: Make sure ${Cyan}myCodeDirectory${Yellow} is correct."
-            printf "\n\n${Yellow}When you are done editing the config file, press Enter again...${Grey}"
-            read -p ""
+              printf "\n${Green}You will need to customize the config file to suit your own needs."
+              printf "\n\n${Yellow}Press enter to automatically open ${Purple}~/bash_calebutils/.bash_calebutils_config.sh${Yellow}...${Grey}"
+              read -p ""
+              code ~/bash_calebutils/.bash_calebutils_config.sh && printf "\n${Green}VSCode Editor opened" || printf "\n${Red}VSCode terminal shortcut not installed. Please edit the file manually at this time."
+            
+              printf "\n${Yellow}Note: Make sure ${Cyan}myCodeDirectory${Yellow} is correct."
+              printf "\n\n${Yellow}When you are done editing the config file, press Enter again...${Grey}"
+              read -p ""
+            fi
 
             # Validate that config and chosen home directory is correct
             printf "\n${Green}Reload bash profile..."

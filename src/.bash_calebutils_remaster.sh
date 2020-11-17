@@ -15,7 +15,8 @@ function remaster() {
     originalBranchName=$(git rev-parse --abbrev-ref HEAD) &&
     originalHeadRef=$(git rev-parse HEAD) &&
     upstreamRef=$(git rev-parse $upstreamRemoteName/master) &&
-    localMasterRef=$(git rev-parse $localBranchTrackingOriginMaster)
+    localMasterRef=$(git rev-parse $localBranchTrackingOriginMaster) &&
+    repoName=basename `git rev-parse --show-toplevel`
   } && {
     printf "\n${Green}Git Configuration ${OK}\n"
   } || {
@@ -91,7 +92,7 @@ function remaster() {
   fi
 
   # ---- Feature Branch ----
-  if [ "$originalBranchName" == "$localBranchTrackingOriginMaster" ]; then
+  if [ "$originalBranchName" = "$localBranchTrackingOriginMaster" ]; then
     printf "${FullLine}"
     printf "\n${Green} Synchronize feature branch"
     printf "${FullLine}"
@@ -100,7 +101,7 @@ function remaster() {
     printf "\n${Yellow}Current branch: ${Purple}$originalBranchName\n\n${Green}"
   fi
 
-  if [ "$originalBranchName" == "HEAD" ]; then
+  if [ "$originalBranchName" = "HEAD" ]; then
     printf "${FullLine}"
     printf "\n${Green} Synchronize ${Cyan}${originalBranchName}${Green} with ${Cyan}$upstreamRemoteName/master"
     printf "${FullLine}"
@@ -138,7 +139,8 @@ function remaster() {
 
     commitsAhead=$(git rev-list --right-only --count $upstreamRemoteName/master..$originalBranchName)
     commitsBehind=$(git rev-list --right-only --count $originalBranchName..$upstreamRemoteName/master)
-    isAncestorOfUpstream=$(git merge-base --is-ancestor $upstreamRemoteName/master $originalBranchName)
+    isUpstreamAncestorOfFeature=$(git merge-base --is-ancestor $upstreamRemoteName/master $originalBranchName; echo $?)
+    isFeatureAncestorOfUpstream=$(git merge-base --is-ancestor $originalBranchName $upstreamRemoteName/master; echo $?)
 
     # Check for existing pull request
     declare -a allRemoteRefs=$(git ls-remote --refs upstream 'pull/*/head' | cut -f1)
@@ -185,37 +187,51 @@ function remaster() {
         fi
       fi
 
-      # Ask user what to do with current progress on feature branch
-      printf "\n${Green}Please make a selection:"
-      printf "\n${White}(${Yellow} 1 ${White}) Rebase this branch (${Cyan}$originalBranchName${White}) onto ${Cyan}upstream/master${Yellow}"
-      printf "\n${White}(${Yellow} 2 ${White}) Begin working on a new feature branch, from ${Cyan}upstream/master${Yellow}"
-      printf "\n${White}(${Yellow} 3 ${White}) Do nothing.  Continue working on this branch (${Cyan}$originalBranchName${White})"
-      printf "\n${Cyan}Branch Decision 1, 2, (3): ${Grey}"
-      read -s -n1 key
-      printf "\n"
-      case "$key" in
-        1) # Fast-Forward or Rebase feature branch
-          ff_or_rebase $upstreamRemoteName/master $originalBranchName
-          ;;
-        2) # Create a new feature branch at upstream/master
-          printf "\n${Cyan}New feature branch name: ${Grey}"
-          read choiceBranchName
-          if check_valid_branch $choiceBranchName "ConfirmOverwrite"; then
-            printf "\n${Grey}'$choiceBranchName' is a valid branch name\n${Grey}"
-            # Create branch @ upstream/master
-            git checkout -B $choiceBranchName $upstreamRemoteName/master --no-track
-            printf "\n${OK}: Feature branch created and switched successfully.\n"
-            push_and_set_upstream_if_config_enabled
-            printf "\n\n${Green}You are in sync with ${Cyan}$upstreamRemoteName/master${Green} and are ready to begin working on your new feature, on branch ${Cyan}$choiceBranchName\n"
-          else
-            printf "\n${Error}: ${Cyan}$choiceBranchName ${Red}is not a valid branch name.\n"
-            printf "\n${Red}Feature Branch creation cancelled.  ${Cyan}$originalBranchName ${Yellow}will remain checked out.\n"
-          fi
-          ;;
-        * ) # Do nothing
-            printf "\n${Yellow}Feature Branch will not be created.  ${Cyan}$originalBranchName ${Yellow}will remain checked out.\n"
-          ;;
-      esac
+      if [[ "$commitsBehind" -eq 0 || "$3" -eq 0 ]]; then
+        # Ask user what to do with current progress on feature branch
+
+        # Highlight options which could be useful
+        declare -a optionColor
+        optionColor[1]=${Grey}
+        optionColor[2]=${Grey}
+        if [[ "$commitsBehind" -gt 0 ]]; then
+          optionColor[1]=${White}
+        fi
+        if [[ "$isFeatureAncestorOfUpstream" -eq 0 ]]; then
+          optionColor[2]=${White}
+        fi
+
+        printf "\n${Green}Please make a selection:"
+        printf "\n${optionColor[1]}(${Yellow} 1 ${optionColor[1]}) ${Purple}SYNC BRANCH${optionColor[1]} - Rebase this branch (${Cyan}$originalBranchName${optionColor[1]}) onto ${Cyan}upstream/master${Yellow}"
+        printf "\n${optionColor[2]}(${Yellow} 2 ${optionColor[2]}) ${Purple}NEW FEATURE${optionColor[2]} - Begin working on a new feature branch, from ${Cyan}upstream/master${Yellow}"
+        printf "\n${White}(${Yellow} 3 ${White}) ${Purple}DO NOTHING${optionColor[1]} - Continue working on this branch (${Cyan}$originalBranchName${White})"
+        printf "\n${Cyan}Branch Decision 1, 2, (3): ${Grey}"
+        read -s -n1 key
+        printf "\n"
+        case "$key" in
+          1) # Fast-Forward or Rebase feature branch
+            ff_or_rebase $upstreamRemoteName/master $originalBranchName
+            ;;
+          2) # Create a new feature branch at upstream/master
+            printf "\n${Cyan}New feature branch name: ${Grey}"
+            read choiceBranchName
+            if check_valid_branch $choiceBranchName "ConfirmOverwrite"; then
+              printf "\n${Grey}'$choiceBranchName' is a valid branch name\n${Grey}"
+              # Create branch @ upstream/master
+              git checkout -B $choiceBranchName $upstreamRemoteName/master --no-track
+              printf "\n${OK}: Feature branch created and switched successfully.\n"
+              push_and_set_upstream_if_config_enabled
+              printf "\n\n${Green}You are in sync with ${Cyan}$upstreamRemoteName/master${Green} and are ready to begin working on your new feature, on branch ${Cyan}$choiceBranchName\n"
+            else
+              printf "\n${Error}: ${Cyan}$choiceBranchName ${Red}is not a valid branch name.\n"
+              printf "\n${Red}Feature Branch creation cancelled.  ${Cyan}$originalBranchName ${Yellow}will remain checked out.\n"
+            fi
+            ;;
+          * ) # Do nothing
+              printf "\n${Yellow}Feature Branch will not be created.  ${Cyan}$originalBranchName ${Yellow}will remain checked out.\n"
+            ;;
+        esac
+      fi
     fi
   fi
 
@@ -253,11 +269,18 @@ function remaster() {
 
   printf "${Green}Current working branch: ${Cyan}$finalBranchName\n\n"
   git log -5 --graph --oneline
-  printf "\n\n${Reset}"
 
-  if [ "$autoOpenVSCodeOnShortcut" == "true" ]; then
+  # ---- Quick Links ----
+  printf "${FullLine}"
+  printf "\n${Green} Quick Links"
+  printf "${FullLine}"
+  printf "\n%-10s" "abc123" "http://www.github.com/${orgGithub}/${repoName}/compare/master...${githubUsername}:${originalBranchName}"
+
+  if [ "$autoOpenVSCodeOnShortcut" = "true" ]; then
     code .
   fi
+
+  printf "\n\n${Reset}"
 }
 
 ff_or_rebase() {
@@ -327,7 +350,7 @@ create_custom_branch() {
 }
 
 push_and_set_upstream_if_config_enabled() {
-  if [ "$autoPushNewFeatureBranch" == "true" ]; then
+  if [ "$autoPushNewFeatureBranch" = "true" ]; then
     printf "\n${Green}Setting up branch tracking...\n${Grey}"
     git push --set-upstream $originRemoteName $choiceBranchName && {
       printf "\n${OK}: Branch tracking setup successfully.\n"
@@ -353,7 +376,7 @@ check_valid_branch() {
 
     case "$ruleAllowExisting" in
       "MustExist")
-        if [ "$branchExists" == "0" ]; then
+        if [ "$branchExists" = "0" ]; then
           printf "\n${OK}: Branch exists.\n"
           return 0
         else
@@ -371,7 +394,7 @@ check_valid_branch() {
         fi
         ;;
       "ConfirmOverwrite")
-        if [ "$branchExists" == "0" ]; then
+        if [ "$branchExists" = "0" ]; then
           printf "\n${Warning}: Branch with name ${Purple}${testBranchName}${Yellow} already exists.\n"
           printf "Confirm overwrite? (Y/n)"
           read -s -n1 key

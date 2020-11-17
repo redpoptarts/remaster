@@ -5,6 +5,7 @@
 # Note: If your path starts with '~/', replace that with '$HOME/'
 myCodeDirectory="$HOME/your/repos/directory"
 githubUsername="YourGithubUsername"
+orgGithub="YourCompanyName" # Default: 'opentable'
 
 originRemoteName="origin" # Default: 'origin'
 upstreamRemoteName="upstream" # Default: 'upstream'
