@@ -272,9 +272,9 @@ function remaster() {
 
   # ---- Quick Links ----
   printf "${FullLine}"
-  printf "\n${Green} Quick Links"
+  printf "\n${Green} Quick Links ${White}(CMD + click to open)"
   printf "${FullLine}"
-  printf "\n%-10s" "abc123" "http://www.github.com/${orgGithub}/${repoName}/compare/master...${githubUsername}:${originalBranchName}"
+  printf "\n%-10s" "Create PR" "http://www.github.com/${orgGithub}/${repoName}/compare/master...${githubUsername}:${originalBranchName}"
 
   if [ "$autoOpenVSCodeOnShortcut" = "true" ]; then
     code .
