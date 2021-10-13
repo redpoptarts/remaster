@@ -67,7 +67,7 @@ function remaster() {
     printf "\n\n${Green}Summary of commits:\n"
     git log $upstreamRemoteName/master..$localBranchTrackingOriginMaster --graph --oneline
     printf "\n${Cyan}Recommended Solution: Would you like to save this work into a feature branch? (y/n) ${Grey}"
-    read -s -n1 key
+    read -q -n 1 key
     case "$key" in
       [yY]) # Save progress to a feature branch
         create_custom_branch "ConfirmOverwrite" # Stores selected branch name in variable $choiceBranchName
@@ -119,7 +119,7 @@ function remaster() {
       | tr , "\n" `# Output on separate lines`
 
     printf "\n${Cyan}Recommend solution: Checkout/Create a branch at this location? (y/N) ${Grey}"
-    read -s -n1 key
+    read -q -n 1 key
     case "$key" in
       [yY])
         create_custom_branch "Any"
@@ -208,7 +208,7 @@ function remaster() {
         printf "\n${optionColor[2]}(${Yellow} 2 ${optionColor[2]}) ${Purple}NEW FEATURE${optionColor[2]} - Begin working on a new feature branch, from ${Cyan}upstream/master${Yellow}"
         printf "\n${White}(${Yellow} 3 ${White}) ${Purple}DO NOTHING${optionColor[1]} - Continue working on this branch (${Cyan}$originalBranchName${White})"
         printf "\n${Cyan}Branch Decision 1, 2, (3): ${Grey}"
-        read -s -n1 key
+        read -q -n 1 key
         printf "\n"
         case "$key" in
           1) # Fast-Forward or Rebase feature branch
@@ -399,7 +399,7 @@ check_valid_branch() {
         if [ "$branchExists" = "0" ]; then
           printf "\n${Warning}: Branch with name ${Purple}${testBranchName}${Yellow} already exists.\n"
           printf "Confirm overwrite? (Y/n)"
-          read -s -n1 key
+          read -q -n 1 key
           printf "\n"
           case "$key" in
             [yY]) # Overwrite
