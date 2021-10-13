@@ -145,7 +145,7 @@ function remaster() {
     isFeatureAncestorOfUpstream=$(git merge-base --is-ancestor $originalBranchName $upstreamRemoteName/master; echo $?)
 
     # Check for existing pull request
-    declare -a allRemoteRefs=$(git ls-remote --refs upstream 'pull/*/head' | cut -f1)
+    typeset allRemoteRefs=$(git ls-remote --refs upstream 'pull/*/head' | cut -f1)
     unset foundPullRequest
     for ref in ${allRemoteRefs}; do
       if [ "$ref" = "$originalHeadRef" ]; then
@@ -193,9 +193,7 @@ function remaster() {
         # Ask user what to do with current progress on feature branch
 
         # Highlight options which could be useful
-        declare -a optionColor
-        optionColor[1]=${Grey}
-        optionColor[2]=${Grey}
+        typeset optionColor=(${Grey} ${Grey})
         if [[ "$commitsBehind" -gt 0 ]]; then
           optionColor[1]=${White}
         fi
@@ -208,7 +206,7 @@ function remaster() {
         printf "\n${optionColor[2]}(${Yellow} 2 ${optionColor[2]}) ${Purple}NEW FEATURE${optionColor[2]} - Begin working on a new feature branch, from ${Cyan}upstream/master${Yellow}"
         printf "\n${White}(${Yellow} 3 ${White}) ${Purple}DO NOTHING${optionColor[1]} - Continue working on this branch (${Cyan}$originalBranchName${White})"
         printf "\n${Cyan}Branch Decision 1, 2, (3): ${Grey}"
-        read -q "key?"
+        read -s -k "key?"
         printf "\n"
         case "$key" in
           1) # Fast-Forward or Rebase feature branch
