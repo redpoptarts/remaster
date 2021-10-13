@@ -18,7 +18,7 @@ function remaster() {
     originalHeadRef=$(git rev-parse HEAD) &&
     upstreamRef=$(git rev-parse $upstreamRemoteName/master) &&
     localMasterRef=$(git rev-parse $localBranchTrackingOriginMaster) &&
-    repoName=basename `git rev-parse --show-toplevel`
+    repoName=$(basename `git rev-parse --show-toplevel`)
   } && {
     printf "\n${Green}Git Configuration ${OK}\n"
   } || {
