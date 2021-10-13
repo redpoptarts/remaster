@@ -28,6 +28,7 @@ function remaster() {
     printf "\n${White} • ${Yellow}A branch on that remote called ${Purple}master${Yellow} "
     printf "\n${White} • ${Yellow}A remote called ${Purple}$originRemoteName${Yellow} "
     printf "\n${White} • ${Yellow}A branch on that remote called ${Purple}$localBranchTrackingOriginMaster${Yellow} "
+    printf "\n\n${Yellow}Consider using the ${Cyan}fork repo-name-here${Yellow} command to automatically these up."
     printf "\n\n${Reset}"
     return
   }
