@@ -28,20 +28,21 @@ function fork() {
     printf "\n${Warning}: ${Red} The repo ${Yellow}${repoName}${Red} already exists locally on your machine."
     printf "\n${Red}This operation will overwrite existing changes in this directory!!"
     printf "\n${Purple}=====================================================================================\n\n${Cyan}"
-    read -p "Would you like to fork and clone this repo?(y/N): " shouldForkAndClone
+    read -q "shouldForkAndClone? Would you like to fork and clone this repo?(y/N): " 
   else
     printf "\n\n${Green}NOTE: The repo ${Yellow}${repoName}${Green} does not exist locally on your machine.\n\n${Cyan}"
-    read -p "Would you like to fork and clone this repo? (y/N): " shouldForkAndClone
+    read -q "shouldForkAndClone? Would you like to fork and clone this repo? (y/N): "
   fi
 
 
   case "$shouldForkAndClone" in
-    [yY][eE][sS]|[yY])
+    [yY])
       printf "\n\n${Green}Choose a forking method:"
       printf "\n${White}(${Yellow} 0 ${White}) Skip forking, clone only (repo is already forked)"
       printf "\n${White}(${Yellow} 1 ${White}) Open a browser and Fork"
-      printf "\n${White}(${Yellow} 2 ${White}) Login to Github in Terminal to Fork ${Cyan}\n\n"
-      read -p "Forking method (1/2): " forkingMethod
+      printf "\n${White}(${Yellow} 2 ${White}) Login to Github in Terminal to Fork ${Cyan}"
+      printf "\n\nForking method (1/2): "
+      read -s -k "forkingMethod?"
       readytoClone=0
 
       case "$forkingMethod" in
@@ -53,8 +54,9 @@ function fork() {
           printf "\n\n${Green}[Command + Double Click] this link to open in a browser:"
           printf "\n${Purple}http://www.github.com/opentable/${repoName}/fork"
           printf "\n    👆                                           👆\n"
-          printf "\n\n\n${Blue}"
-          read -p "When you are done forking this repository in Github, press any key to continue."
+          printf "\n\n"
+          printf "\n${Blue}When you are done forking this repository in Github, press any key to continue."
+          read -s -k
           readytoClone=1
           ;;
         2)
@@ -66,7 +68,7 @@ function fork() {
           printf "Your password is not stored in memory, it is captured directly via CURL\n\n${Grey}"
           printf "${Cyan}Logging in with Github Username ${Purple}${githubUsername}\n"
           printf "${Cyan}Enter github two-factor authentication code (2FA): ${Grey}"
-          read -p "" MFA_CODE
+          read "MFA_CODE?"
           # Ask for password using Curl, then fork
           forkResult=$(curl \
             -u "$githubUsername" \
