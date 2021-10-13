@@ -1,3 +1,5 @@
+#!bin/bash/sh
+
 function remaster() {
   clear && printf '\e[3J'
   printf "${White}"
