@@ -18,7 +18,8 @@ function remaster() {
     originalHeadRef=$(git rev-parse HEAD) &&
     upstreamRef=$(git rev-parse $upstreamRemoteName/master) &&
     localMasterRef=$(git rev-parse $localBranchTrackingOriginMaster) &&
-    repoName=$(basename `git rev-parse --show-toplevel`)
+    repoFolder=$(git rev-parse --show-toplevel)
+    repoName=$(basename $repoFolder)
   } && {
     printf "\n${Green}Git Configuration ${OK}\n"
   } || {
@@ -245,14 +246,14 @@ function remaster() {
   git diff $originalHeadRef..HEAD --quiet --exit-code -- 'package.json'
   numPackageChanges=$?
   if [ $numPackageChanges -ne 0 ]; then
-    if [ -f "yarn.lock" ]; then
-      installCommand="yarn"
+    if [ -f "$repoFolder/yarn.lock" ]; then
+      typeset installCommand=("yarn")
     else
-      installCommand="npm install"
+      typeset installCommand=("npm" "install")
     fi
     
     printf "\n${Yellow}Changes have been detected in ${Purple}package.json${Yellow}, automatically running ${Purple}${installCommand}${Yellow}...\n\n"
-    $installCommand && printf "\n${Green}Dependencies have been updated ... ${OK}\n\n" \
+    $installCommand[@] && printf "\n${Green}Dependencies have been updated ... ${OK}\n\n" \
       || { printf "\n${Error}: Encountered a problem while running $installCommand\n\n"; }
   else
     printf "\n${Green}No changes detected in ${Purple}package.json${Green} ... ${OK}\n\n"
