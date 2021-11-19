@@ -9,7 +9,10 @@ orgGithub="YourCompanyName" # Default: 'opentable'
 
 originRemoteName="origin" # Default: 'origin'
 upstreamRemoteName="upstream" # Default: 'upstream'
-localBranchTrackingOriginMaster="master" # Default: 'master'
+upstreamBaseBranchNamePreferred="main" # Default: 'main'
+upstreamBaseBranchNameFallback="master" # Default: 'master'
+localBaseBranchNamePreferredTrackingOrigin="main" # Default: 'main'
+localBaseBranchNameFallbackTrackingOrigin="master" # Default: 'master'
 
 autoPushNewFeatureBranch="true"
 autoOpenVSCodeOnShortcut="true"

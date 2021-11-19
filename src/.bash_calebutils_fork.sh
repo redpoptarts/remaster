@@ -21,7 +21,7 @@ function fork() {
   printf "${Grey} • The repo will be cloned down to your machine into the following directory:\n"
   printf "    ${Cyan}${myCodeDirectory}/${Green}${repoName}\n\n"
   printf "${Grey} • A remote named ${Cyan}${upstreamRemoteName}${Grey} will be setup with a branch named ${Cyan}master \n"
-  printf "${Grey} • A remote named ${Cyan}${originRemoteName}${Grey} will be setup with a branch named ${Cyan}$localBranchTrackingOriginMaster \n"
+  printf "${Grey} • A remote named ${Cyan}${originRemoteName}${Grey} will be setup with a branch named ${Cyan}$localPrimaryPreferredBranchNameTrackingOriginPrimary \n"
 
   if [ -d ${appDirectory} ]; then
     printf "\n\n${Purple}====================================================================================="
@@ -147,9 +147,9 @@ function fork() {
         git remote add $upstreamRemoteName "git@github.com:opentable/${repoName}.git"
         git remote -v show
 
-        printf "\n${Green}🌵 Configuring local branches...  (${Purple}$localBranchTrackingOriginMaster${Green})\n${Grey}"
-        if [ $localBranchTrackingOriginMaster != "master" ]; then
-          git branch -m master "$localBranchTrackingOriginMaster"
+        printf "\n${Green}🌵 Configuring local branches...  (${Purple}$localPrimaryPreferredBranchNameTrackingOriginPrimary${Green})\n${Grey}"
+        if [ $localBranchTrackingOriginPrimaryBranch != "master" ]; then
+          git branch -m master "$localBranchTrackingOriginPrimaryBranch"
         fi
         git branch -u $originRemoteName/master
 

@@ -50,7 +50,7 @@ If not, you'll have to manually open the file at this point.
 - `orgGithub` : Such as `"opentable"`
 - `originRemoteName` : Frequently your first name, or `origin`
 - `upstreamRemoteName` : Commonly 'upstream'
-- `localBranchTrackingOriginMaster` : Commonly 'main', 'master', or 'base'
+- `localBranchTrackingOriginPrimaryBranch` : Commonly 'main', 'master', or 'base'
 - `autoPushNewFeatureBranch` : Use "true" or "false". When "true", new branches that are created will automatically push to your remote and configure tracking branches
 - `autoOpenVSCodeOnShortcut` : Use "true" or "false". When "true", the script will open the repo in VSCode after the script completes.
 

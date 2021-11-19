@@ -16,8 +16,26 @@ function remaster() {
   {
     originalBranchName=$(git rev-parse --abbrev-ref HEAD) &&
     originalHeadRef=$(git rev-parse HEAD) &&
-    upstreamRef=$(git rev-parse $upstreamRemoteName/master) &&
-    localMasterRef=$(git rev-parse $localBranchTrackingOriginMaster) &&
+    upstreamRef=$(git rev-parse --verify --quiet $upstreamRemoteName/$upstreamBaseBranchNamePreferred || git rev-parse --verify --quiet $upstreamRemoteName/$upstreamBaseBranchNameFallback) && \
+    {
+      # Determine base branch name for upstream
+      upstreamBaseBranchName=$( \
+        [[ $(git rev-parse --verify --quiet $upstreamRemoteName/$upstreamBaseBranchNamePreferred) ]] && echo $upstreamBaseBranchNamePreferred \
+      ) || \
+      upstreamBaseBranchName=$( \
+          [[ $(git rev-parse --verify --quiet $upstreamRemoteName/$upstreamBaseBranchNameFallback) ]] && echo $upstreamBaseBranchNameFallback \
+      )
+    } && \
+    localMainRef=$(git rev-parse --verify --quiet $localBaseBranchNamePreferredTrackingOrigin || git rev-parse --verify --quiet $localBaseBranchNameFallbackTrackingOrigin) &&
+    {
+      # Determine base branch name for local dev
+      localBaseBranchName=$( \
+        [[ $(git rev-parse --verify --quiet $originRemoteName/$localBaseBranchNamePreferred) ]] && echo $localBaseBranchNamePreferred \
+      ) || \
+      localBaseBranchName=$( \
+        [[ $(git rev-parse --verify --quiet $originRemoteName/$localBaseBranchNameFallback) ]] && echo $localBaseBranchNameFallback \
+      )
+    } && \
     repoFolder=$(git rev-parse --show-toplevel)
     repoName=$(basename $repoFolder)
   } && {
@@ -26,9 +44,9 @@ function remaster() {
     printf "\n${Error}: Remaster configuration is invalid for this repo."
     printf "\n${Yellow}You must have:"
     printf "\n${White} • ${Yellow}A remote called ${Purple}$upstreamRemoteName${Yellow} "
-    printf "\n${White} • ${Yellow}A branch on that remote called ${Purple}master${Yellow} "
+    printf "\n${White} • ${Yellow}A branch on that remote called ${Purple}$upstreamBaseBranchNamePreferred${Yellow} or ${Purple}$upstreamBaseBranchNameFallback${Yellow} "
     printf "\n${White} • ${Yellow}A remote called ${Purple}$originRemoteName${Yellow} "
-    printf "\n${White} • ${Yellow}A branch on that remote called ${Purple}$localBranchTrackingOriginMaster${Yellow} "
+    printf "\n${White} • ${Yellow}A branch on that remote called ${Purple}$localBaseBranchNamePreferredTrackingOrigin${Yellow} or ${Purple}$localBaseBranchNameFallbackTrackingOrigin${Yellow} "
     printf "\n\n${Yellow}Consider using the ${Cyan}fork repo-name-here${Yellow} command to automatically these up."
     printf "\n\n${Reset}"
     return
@@ -51,23 +69,23 @@ function remaster() {
 
   # ---- origin/master ----
   printf "${FullLine}"
-  printf "\n${Green} Synchronize ${Cyan}$originRemoteName/$localBranchTrackingOriginMaster ${Green}with ${Cyan}$upstreamRemoteName/master"
+  printf "\n${Green} Synchronize ${Cyan}$originRemoteName/$localBranchTrackingOriginPrimaryBranch ${Green}with ${Cyan}$upstreamRemoteName/master"
   printf "${FullLine}"
   printf "\n${Grey}"
 
   # Checkout origin/master
-  git checkout $localBranchTrackingOriginMaster
+  git checkout $localBranchTrackingOriginPrimaryBranch
 
   # Synchronize (ff/rebase) origin/master <-- upstream/master
-  ff_or_rebase $upstreamRemoteName/master $localBranchTrackingOriginMaster
+  ff_or_rebase $upstreamRemoteName/$upstreamBaseBranchName $localBranchTrackingOriginPrimaryBranch
 
   # Check: Is origin ahead of upstream?
-  if [ $(git rev-list --count $upstreamRemoteName/master..$localBranchTrackingOriginMaster) -ge 1 ]; then
+  if [ $(git rev-list --count $upstreamRemoteName/$upstreamBaseBranchName..$localBranchTrackingOriginPrimaryBranch) -ge 1 ]; then
     # Suggest saving work into feature branch @ origin/master
-    printf "\n${Yellow}WARNING: origin/master is AHEAD of upstream/master!\n"
+    printf "\n${Yellow}WARNING: $originRemoteName/master is AHEAD of $upstreamRemoteName/$upstreamBaseBranchName!\n"
     printf "\n${Yellow}Problem: You are developing on your master branch, which is not recommended."
     printf "\n\n${Green}Summary of commits:\n"
-    git log $upstreamRemoteName/master..$localBranchTrackingOriginMaster --graph --oneline
+    git log $upstreamRemoteName/master..$localBranchTrackingOriginPrimaryBranch --graph --oneline
     printf "\n${Cyan}Recommended Solution: Would you like to save this work into a feature branch? (y/n) ${Grey}"
     read -q "key?"
     case "$key" in
@@ -76,27 +94,27 @@ function remaster() {
         {
           # Save commits from origin/master into a feature branch
           # Reset origin/master <== upstream/master (force)
-          printf "\n${Green}Resetting ${Cyan}${localBranchTrackingOriginMaster}${Green} to equal ${Cyan}$upstreamRemoteName/master${Green}...\n${Grey}"
-          git fetch $upstreamRemoteName +master:$localBranchTrackingOriginMaster && \
-          git push $originRemoteName +$localBranchTrackingOriginMaster:master
+          printf "\n${Green}Resetting ${Cyan}${localBranchTrackingOriginPrimaryBranch}${Green} to equal ${Cyan}$upstreamRemoteName/master${Green}...\n${Grey}"
+          git fetch $upstreamRemoteName +master:$localBranchTrackingOriginPrimaryBranch && \
+          git push $originRemoteName +$localBranchTrackingOriginPrimaryBranch:master
         } && {
-          printf "\n${OK}: Forced reset of ${Cyan}${localBranchTrackingOriginMaster}${Green}, locally and on remote ${Cyan}$originRemoteName \n${Grey}"
+          printf "\n${OK}: Forced reset of ${Cyan}${localBranchTrackingOriginPrimaryBranch}${Green}, locally and on remote ${Cyan}$originRemoteName \n${Grey}"
           printf "\n${OK}: Saved progress into new feature branch (${Purple} ${choiceBranchName} ${Green})\n"
           originalBranchName=$choiceBranchName
         } || {
           printf "\n${Error}: Error saving progress into new branch \n"
-          printf "\n${Red}Feature Branch creation cancelled.  ${Cyan}$originRemoteName/$localBranchTrackingOriginMaster ${Yellow}will remain untouched.\n${Grey}"
+          printf "\n${Red}Feature Branch creation cancelled.  ${Cyan}$originRemoteName/$localBranchTrackingOriginPrimaryBranch ${Yellow}will remain untouched.\n${Grey}"
           git checkout $originalBranchName
         }
         ;;
       * ) # Do nothing
-          printf "\n${Yellow}Feature Branch creation cancelled.  ${Cyan}$originRemoteName/$localBranchTrackingOriginMaster ${Yellow}will remain untouched.\n"
+          printf "\n${Yellow}Feature Branch creation cancelled.  ${Cyan}$originRemoteName/$localBranchTrackingOriginPrimaryBranch ${Yellow}will remain untouched.\n"
         ;;
       esac
   fi
 
   # ---- Feature Branch ----
-  if [ "$originalBranchName" = "$localBranchTrackingOriginMaster" ]; then
+  if [ "$originalBranchName" = "$localBranchTrackingOriginPrimaryBranch" ]; then
     printf "${FullLine}"
     printf "\n${Green} Synchronize feature branch"
     printf "${FullLine}"
@@ -133,7 +151,7 @@ function remaster() {
     esac
   fi
   
-  if [ "$originalBranchName" != "HEAD" ] && [ "$originalBranchName" != "$localBranchTrackingOriginMaster" ]; then
+  if [ "$originalBranchName" != "HEAD" ] && [ "$originalBranchName" != "$localBranchTrackingOriginPrimaryBranch" ]; then
     printf "${FullLine}"
     printf "\n${Green} Synchronize ${Cyan}$originalBranchName ${Green}with ${Cyan}$upstreamRemoteName/master"
     printf "${FullLine}"
